@@ -101,11 +101,11 @@ public:
     T PopFront();
     T PopBack();
 
-    T& At(std::size_t i);
+    // Remove non-const ref accessor since it makes it hard to ensure persistence
+    // T& At(std::size_t i);
+    // inline T& operator[](std::size_t i);
+
     const T& At(std::size_t i) const;
-
-    inline T& operator[](std::size_t i);
-
     inline const T& operator[](std::size_t i) const;
 
     inline bool IsEmpty() const { return m_size == 0; }
@@ -152,7 +152,9 @@ private:
     std::size_t m_size = 0;
 };
 
-// const_iterator impl
+/////////////////////////
+// const_iterator impl //
+/////////////////////////
 
 template <typename T, std::size_t BufferSizeBytes>
 PersistentDeque<T, BufferSizeBytes>::const_iterator::const_iterator(const PersistentDeque* owner, std::size_t logical_idx)
@@ -344,7 +346,9 @@ void PersistentDeque<T, BufferSizeBytes>::const_iterator::MoveToLogicalIndex(std
     m_idx_in_buffer = idx_in_buffer;
 }
 
-// PersistentDeque impl
+//////////////////////////
+// PersistentDeque impl //
+//////////////////////////
 
 template <typename T, std::size_t BufferSizeBytes>
 template <typename U>
@@ -519,17 +523,17 @@ T PersistentDeque<T, BufferSizeBytes>::PopBack()
     return value;
 }
 
-template <typename T, std::size_t BufferSizeBytes>
-T& PersistentDeque<T, BufferSizeBytes>::At(std::size_t i)
-{
-    const auto [buffer_idx, idx_in_buffer] = Locate(i);
-    auto& block = m_buffers[buffer_idx];
-    // Ensure unique since we're returning by non-const ref here, allowing the
-    // user to mutate. This isn't strict since the user can store in an l-value
-    // and mutate after deque copies have been made.
-    EnsureUnique(block);
-    return block->operator[](idx_in_buffer);
-}
+// template <typename T, std::size_t BufferSizeBytes>
+// T& PersistentDeque<T, BufferSizeBytes>::At(std::size_t i)
+// {
+//     const auto [buffer_idx, idx_in_buffer] = Locate(i);
+//     auto& block = m_buffers[buffer_idx];
+//     // Ensure unique since we're returning by non-const ref here, allowing the
+//     // user to mutate. This isn't strict since the user can store in an l-value
+//     // and mutate after deque copies have been made.
+//     EnsureUnique(block);
+//     return block->operator[](idx_in_buffer);
+// }
 
 template <typename T, std::size_t BufferSizeBytes>
 const T& PersistentDeque<T, BufferSizeBytes>::At(std::size_t i) const
@@ -539,11 +543,11 @@ const T& PersistentDeque<T, BufferSizeBytes>::At(std::size_t i) const
     return block->operator[](idx_in_buffer);
 }
 
-template <typename T, std::size_t BufferSizeBytes>
-T& PersistentDeque<T, BufferSizeBytes>::operator[](std::size_t i)
-{
-    return this->At(i);
-}
+// template <typename T, std::size_t BufferSizeBytes>
+// T& PersistentDeque<T, BufferSizeBytes>::operator[](std::size_t i)
+// {
+//     return this->At(i);
+// }
 
 template <typename T, std::size_t BufferSizeBytes>
 const T& PersistentDeque<T, BufferSizeBytes>::operator[](std::size_t i) const
