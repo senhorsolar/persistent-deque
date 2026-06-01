@@ -11,6 +11,6 @@ The implementation is inspired by the common std::deque implementation which use
 Performance characteristics:
 - Copies: $\Theta(m)$, where $m$ is the number of blocks. We just copy the map of pointers.
 - Push/Pop: $\Theta(1)$
-- Value searches (assuming sorted deque): $\Theta(log\,n)$, where $n$ is the number of elements.
+- Value searches (assuming sorted deque): $\Theta(\log n)$, where $n$ is the number of elements.
 
 Single copy performance is still no where near the std::deque performance. I suspect it's largely due to using a circular buffer for the fixed size buffer, and not reusing freed buffers. I'm sure we can keep the map as a circular buffer with little downsides.
