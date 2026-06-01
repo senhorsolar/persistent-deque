@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <deque>
 
@@ -130,8 +131,51 @@ void measure_single_copy(std::size_t n, std::size_t reps)
               << "\n";
 }
 
+void measure_find(std::size_t n)
+{
+    // Binary search on sorted queues
+
+    PersistentDeque<std::size_t> persistent_dq;
+    std::deque<std::size_t> std_dq;
+
+    bool all_found_persistent = true;
+    bool all_found_std = true;
+
+    for (std::size_t i = 0; i < n; ++i) {
+        persistent_dq.PushBack(i);
+        std_dq.push_back(i);
+    }
+
+    auto run_persistent = [&]() {
+        for (std::size_t i = 0; i < n; ++i) {
+            // Careful not to short-circuit
+            all_found_persistent =
+                std::binary_search(persistent_dq.begin(), persistent_dq.end(), i) && all_found_persistent;
+        }
+    };
+
+    auto run_std = [&]() {
+        for (std::size_t i = 0; i < n; ++i) {
+            // Careful not to short-circuit
+            all_found_std =
+                std::binary_search(std_dq.begin(), std_dq.end(), i) && all_found_std;
+        }
+    };
+
+    double persistent_us = measure_time_us(run_persistent);
+    double std_us = measure_time_us(run_std);
+
+    std::cout << "measure_find n=" << n
+              << "\n-- persistent avg =" << (persistent_us / n / 1000.0) << "ms"
+              << "\n-- std avg = " << (std_us / n / 1000.0) << "ms"
+              << "\n-- speedup with persistence=" << (std_us / persistent_us)
+              << "\n-- std value equivalence? " << ((all_found_persistent == all_found_std) ? "true" : "false")
+              << "\n";
+}
+
 int main()
 {
     measure_clones(200000, 64, 64, 5);
     measure_single_copy(3000000, 5);
+    measure_find(100000);
 }
